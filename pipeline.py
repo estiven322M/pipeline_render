@@ -31,8 +31,8 @@ def ejecutar_pipeline():
         # 🔹 3. Transformación
         df["time"] = df["time"].astype(str)
         df["time"] = pd.to_timedelta(df["time"])
-        df["time_ms"] = df["time"].dt.total_seconds()
-        df["updated_at"] = datetime.now()
+        df["time_ms"] = df["time"].dt.total_seconds()*1000
+        
         df = df.drop(columns=["time"])
         
 
