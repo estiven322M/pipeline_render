@@ -2,6 +2,7 @@ import psycopg2
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+from datetime import datetime
 import os
 import json
 
@@ -31,7 +32,9 @@ def ejecutar_pipeline():
         df["time"] = df["time"].astype(str)
         df["time"] = pd.to_timedelta(df["time"])
         df["time_ms"] = df["time"].dt.total_seconds() * 1000
+        df["updated_at"] = datetime.now()
         df = df.drop(columns=["time"])
+        
 
         # 🔹 4. Credenciales desde ENV (CORRECTO)
         creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
