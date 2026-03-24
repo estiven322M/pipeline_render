@@ -32,7 +32,7 @@ def ejecutar_pipeline():
         df["time"] = df["time"].astype(str)
         df["time"] = pd.to_timedelta(df["time"])
         df["time_ms"] = df["time"].dt.total_seconds()*1000
-        
+        df["time_ms"] = df["time_ms"] / 1000
         df = df.drop(columns=["time"])
         
 
