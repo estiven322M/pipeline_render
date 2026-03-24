@@ -2,6 +2,8 @@ import psycopg2
 import pandas as pd
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
+import os
+import json
 
 
 def ejecutar_pipeline():
@@ -19,41 +21,36 @@ def ejecutar_pipeline():
         )
 
         print("✅ Conectado a Render")
-        # 🔹 2. Consulta (tu tabla de algoritmos)
 
-        query = f"SELECT * FROM execution_time;"
+        # 🔹 2. Consulta
+        query = "SELECT * FROM execution_time;"
         df = pd.read_sql(query, conn)
+        conn.close()
 
-        # 🔹 Convertir time a string
+        # 🔹 3. Transformación
         df["time"] = df["time"].astype(str)
-
-        # 🔹 Convertir a timedelta
         df["time"] = pd.to_timedelta(df["time"])
-
-        # 🔹 Convertir a milisegundos
         df["time_ms"] = df["time"].dt.total_seconds() * 1000
-
-        # 🔹 Opcional: eliminar columna original
         df = df.drop(columns=["time"])
 
-        conn.close()
-        print("\n Datos obtenidos:")
-        # 🔹 3. Conectar a Google Sheets
+        # 🔹 4. Credenciales desde ENV (CORRECTO)
+        creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+
         scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/drive"
+            "https://spreadsheets.google.com/feeds",
+            "https://www.googleapis.com/auth/drive"
         ]
-        creds = ServiceAccountCredentials.from_json_keyfile_name(
-        "proyecto-algoritmos-credenciales.json", scope
-        )
+
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_dict, scope)
         client = gspread.authorize(creds)
+
+        # 🔹 5. Subir a Google Sheets
         sheet = client.open("datos_algoritmos").sheet1
 
-        # 🔹 4. Subir datos
         sheet.clear()
         sheet.update([df.columns.values.tolist()] + df.values.tolist())
 
-        print("Datos enviados a Google Sheets")
+        print("✅ Datos enviados a Google Sheets")
 
 
     except Exception as e:
